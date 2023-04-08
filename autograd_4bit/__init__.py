@@ -12,10 +12,10 @@ loader = None
 
 
 if GPTQ_VERSION == 1:
-    from .autograd_4bit_v1 import Autograd4bitQuantLinear, load_llama_model_4bit_low_ram            
+    from .autograd_4bit_v1 import Autograd4bitQuantLinear, load_llama_model_4bit_low_ram, load_llama_model_4bit_low_ram_and_offload_to_cpu
     print(Style.BRIGHT + Fore.GREEN + "GPTQv1 set")
 elif GPTQ_VERSION == 2:
-    from .autograd_4bit_v2 import Autograd4bitQuantLinear, load_llama_model_4bit_low_ram
+    from .autograd_4bit_v2 import Autograd4bitQuantLinear, load_llama_model_4bit_low_ram, load_llama_model_4bit_low_ram_and_offload_to_cpu
     print(Style.BRIGHT + Fore.GREEN + "GPTQv2 set")
 else:
     raise ValueError("GPTQ_VERSION not set or invalid")
