@@ -171,7 +171,7 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
         make_quant_for_4bit_autograd(model, layers, groupsize=groupsize)
     accelerate.load_checkpoint_in_model(model, checkpoint=model_path, device_map={'': 'cpu'})
 
-    # rotary_emb fix
+    # # rotary_emb fix
     for n, m in model.named_modules():
         if 'rotary_emb' in n:
             cos_cached = m.cos_cached.clone().cpu()
@@ -186,14 +186,8 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
 
     model.seqlen = seqlen
 
-    print('Apply half ...')
-    for n, m in model.named_modules():
-        if isinstance(m, Autograd4bitQuantLinear) or ((lora_path is not None) and isinstance(m, Linear4bitLt)):
-            m.qzeros = m.qzeros.half()
-            m.scales = m.scales.half()
-            m.bias = m.bias.half()
 
-    print('Dispatching model ...')
+    print(Style.BRIGHT + Fore.BLUE + 'Dispatching model ...')
     device_map = accelerate.infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes=["LlamaDecoderLayer"])
     model = accelerate.dispatch_model(model, device_map=device_map, offload_buffers=True, main_device=0)
     torch.cuda.empty_cache()
@@ -217,5 +211,6 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
     tokenizer.truncation_side = 'left'
 
     print(Style.BRIGHT + Fore.GREEN + f"Loaded the model in {(time.time()-t0):.2f} seconds.")
+    print(Style.BRIGHT + Fore.YELLOW + f"VRAM: {torch.cuda.memory_allocated() / (1024 ** 3)}GB")
 
     return model, tokenizer
