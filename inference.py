@@ -1,13 +1,38 @@
-import os
-import sys
+from colorama import init, Style, Fore, Back
 import time
 import torch
-from autograd_4bit import load_llama_model_4bit_low_ram, Autograd4bitQuantLinear
-config_path = './llama-13b-4bit/'
-model_path = './llama-13b-4bit.pt'
-model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1)
+from autograd_4bit import load_llama_model_4bit_low_ram_and_offload_to_cpu
+from autograd_4bit import load_llama_model_4bit_low_ram
+from autograd_4bit import Autograd4bitQuantLinear
 
-print('Fitting 4bit scales and zeros to half')
+# ! Suppress warnings from safetensors
+import warnings
+warnings.filterwarnings(action="ignore", category=UserWarning, message="TypedStorage is deprecated")
+
+# Color output
+init(autoreset=True)
+
+# ! Config
+# config_path = "/home/user/models/65b/config"
+# model_path = "/home/user/models/65b/model.safetensors"
+config_path = "/home/user/models/7b/config"
+model_path = "/home/user/models/7b/model.safetensors"
+
+# VRAM
+# model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=128)
+
+# Offload
+model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
+    config_path=config_path,
+    model_path=model_path,
+    groupsize=128,
+    max_memory={
+        0 : "10Gib",
+        "cpu" : "80Gib"
+    }
+)
+
+print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + 'Fitting 4bit scales and zeros to half')
 model.half()
 for n, m in model.named_modules():
     if isinstance(m, Autograd4bitQuantLinear):
@@ -16,12 +41,14 @@ for n, m in model.named_modules():
         m.scales = m.scales.half()
         m.bias = m.bias.half()
 
-print('Apply AMP Wrapper ...')
+print(Fore.LIGHTYELLOW_EX + 'Apply AMP Wrapper ...')
 from amp_wrapper import AMPWrapper
 wrapper = AMPWrapper(model)
 wrapper.apply_generate()
 
-prompt = '''I think the meaning of life is'''
+
+prompt = '''Slavik: Define favorable outcome, CABAL.
+CABAL: '''
 batch = tokenizer(prompt, return_tensors="pt", add_special_tokens=False)
 batch = {k: v.cuda() for k, v in batch.items()}
 
@@ -41,4 +68,4 @@ with torch.no_grad():
 result_text = tokenizer.decode(generated['sequences'].cpu().tolist()[0])
 end = time.time()
 print(result_text)
-print(end - start)
+print(Fore.LIGHTGREEN_EX + f"Inference time: {end - start:.2f}s")
