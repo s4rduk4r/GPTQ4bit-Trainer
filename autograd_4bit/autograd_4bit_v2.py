@@ -191,7 +191,7 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
     device_map = accelerate.infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes=["LlamaDecoderLayer"])
     model = accelerate.dispatch_model(model, device_map=device_map, offload_buffers=True, main_device=0)
     torch.cuda.empty_cache()
-    print(Style.BRIGHT + Fore.YELLOW + 'Total {:.2f} Gib VRAM used.'.format(torch.cuda.memory_allocated() / 1024 / 1024))
+    print(Style.BRIGHT + Fore.YELLOW + 'Total {:.2f} Mib VRAM used.'.format(torch.cuda.memory_allocated() / (1024 ** 2)))
 
     # rotary_emb fix
     for n, m in model.named_modules():
@@ -211,6 +211,5 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
     tokenizer.truncation_side = 'left'
 
     print(Style.BRIGHT + Fore.GREEN + f"Loaded the model in {(time.time()-t0):.2f} seconds.")
-    print(Style.BRIGHT + Fore.YELLOW + f"VRAM: {torch.cuda.memory_allocated() / (1024 ** 3)}GB")
 
     return model, tokenizer
