@@ -1,10 +1,17 @@
+"""GPTQv2 AutogradMatmul4bit
+
+References: 
+1. Original AutogradMatmul4bit implementation - https://github.com/johnsmith0031/alpaca_lora_4bit/blob/main/autograd_4bit.py
+2. Forward and backward kernels - https://github.com/qwopqwop200/GPTQ-for-LLaMa/blob/triton/quant.py
+"""
+
 from colorama import Fore, Style
 import torch
 import torch.nn as nn
 import time
 import math
 import triton
-from triton_utils import matmul_248_kernel, trans_matmul_248_kernel
+from autograd_4bit.triton_kernels import matmul_248_kernel, trans_matmul_248_kernel
 
 
 class AutogradMatmul4bit(torch.autograd.Function):
@@ -61,7 +68,7 @@ class Autograd4bitQuantLinear(nn.Module):
             self.register_buffer('bias', torch.zeros(out_features,dtype=torch.float16))
         else:
             self.bias = None
-        
+
     def forward(self, x):
         out_shape = x.shape[:-1] + (self.out_features, )
         out = AutogradMatmul4bit.apply(x.reshape(-1,x.shape[-1]), self.qweight, self.scales, 
