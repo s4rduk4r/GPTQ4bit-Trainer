@@ -5,6 +5,8 @@ from autograd_4bit import load_llama_model_4bit_low_ram_and_offload_to_cpu
 from autograd_4bit import load_llama_model_4bit_low_ram
 from autograd_4bit import Autograd4bitQuantLinear
 
+from config.arg_parser import get_config
+
 # ! Suppress warnings from safetensors
 import warnings
 warnings.filterwarnings(action="ignore", category=UserWarning, message="TypedStorage is deprecated")
@@ -13,19 +15,20 @@ warnings.filterwarnings(action="ignore", category=UserWarning, message="TypedSto
 init(autoreset=True)
 
 # ! Config
-# config_path = "/home/user/models/65b/config"
-# model_path = "/home/user/models/65b/model.safetensors"
-config_path = "/home/user/models/7b/config"
-model_path = "/home/user/models/7b/model.safetensors"
+config = get_config()
+
+config_path = config.llama_q4_config_dir
+model_path = config.llama_q4_model
+groupsize = config.groupsize
 
 # VRAM
-# model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=128)
+# model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=groupsize)
 
 # Offload
 model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
     config_path=config_path,
     model_path=model_path,
-    groupsize=128,
+    groupsize=groupsize,
     max_memory={
         0 : "10Gib",
         "cpu" : "80Gib"
