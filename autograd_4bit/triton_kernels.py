@@ -1,6 +1,5 @@
 import triton
 import triton.language as tl
-import torch
 
 # code based https://github.com/fpgaminer/GPTQ-triton
 @triton.autotune(
@@ -195,16 +194,3 @@ def trans_matmul_248_kernel(a_ptr, b_ptr, c_ptr,
     c_ptrs = c_ptr + stride_cm * offs_am[:, None] + stride_cn * offs_bk[None, :]
     c_mask = (offs_am[:, None] < M) & (offs_bk[None, :] < K)
     tl.store(c_ptrs, c, mask=c_mask)
-    
-    
-def triton_matmul(input, qweight, scales, qzeros, g_idx, bits, maxq):
-    output = torch.empty((input.shape[0], qweight.shape[1]), device='cuda', dtype=torch.float16)
-    grid = lambda META: (triton.cdiv(input.shape[0], META['BLOCK_SIZE_M']) * triton.cdiv(qweight.shape[1], META['BLOCK_SIZE_N']),)
-    matmul_248_kernel[grid](input, qweight, output,
-                            scales, qzeros, g_idx,
-                            input.shape[0], qweight.shape[1], input.shape[1], bits, maxq,
-                            input.stride(0), input.stride(1),
-                            qweight.stride(0), qweight.stride(1),
-                            output.stride(0), output.stride(1),
-                            scales.stride(0), qzeros.stride(0))
-    return output
