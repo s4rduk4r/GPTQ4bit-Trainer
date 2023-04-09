@@ -1,4 +1,4 @@
-from colorama import init, Fore, Back, Style
+from colorama import Fore, Style
 import torch
 import torch.nn as nn
 import time
