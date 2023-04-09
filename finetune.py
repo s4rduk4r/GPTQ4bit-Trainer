@@ -21,7 +21,6 @@ import sys
 
 import peft
 import peft.tuners.lora
-assert peft.tuners.lora.is_gptq_available()
 
 import torch
 import transformers
@@ -29,7 +28,7 @@ from autograd_4bit import load_llama_model_4bit_low_ram
 from peft import LoraConfig, get_peft_model, get_peft_model_state_dict, PeftModel
 
 # ! Config
-from arg_parser import get_config
+from config.arg_parser import get_config
 import train_data
 
 ft_config = get_config()
