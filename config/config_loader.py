@@ -21,6 +21,7 @@ def get_config(path: str) -> Finetune4bConfig:
             lora_r=config["lora_r"], 
             lora_alpha=config["lora_alpha"], 
             lora_dropout=config["lora_dropout"],
+            lora_target_modules=config["lora_target_modules"],
             val_set_size=config["val_set_size"],
             gradient_checkpointing=config["grad_chckpt"],
             gradient_checkpointing_ratio=config["grad_chckpt_ratio"],
