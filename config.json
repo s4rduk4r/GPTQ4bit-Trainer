@@ -30,6 +30,6 @@
     "verbose" : false,
     "txt_row_thd" : -1,
     "use_eos_token" : true,
-    "groupsize" : -1,
+    "groupsize" : 128,
     "local_rank" : 0
 }
