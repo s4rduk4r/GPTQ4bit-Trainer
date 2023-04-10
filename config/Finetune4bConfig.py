@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import List
 
 class Finetune4bConfig:
     """Config holder for LLaMA 4bit finetuning
@@ -11,7 +11,7 @@ class Finetune4bConfig:
                  epochs: int, lr: float,
                  cutoff_len: int,
                  lora_r: int, lora_alpha: int, lora_dropout: float,
-                 lora_target_modules: Dict,
+                 lora_target_modules: List,
                  val_set_size: float,
                  gradient_checkpointing: bool,
                  gradient_checkpointing_ratio: float,
