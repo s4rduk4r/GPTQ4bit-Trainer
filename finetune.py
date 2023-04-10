@@ -17,15 +17,11 @@
     ]
 """
 
-import sys
-
-import peft
-import peft.tuners.lora
-
 import torch
 import transformers
+from peft import LoraConfig, TaskType, get_peft_model, PeftModel
 from autograd_4bit import load_llama_model_4bit_low_ram
-from peft import LoraConfig, get_peft_model, get_peft_model_state_dict, PeftModel
+
 
 # ! Config
 from config.arg_parser import get_config
@@ -42,36 +38,33 @@ if ft_config.gradient_checkpointing:
 
 # Load Basic Model
 model, tokenizer = load_llama_model_4bit_low_ram(ft_config.llama_q4_config_dir,
-                                                  ft_config.llama_q4_model,
-                                                  device_map=ft_config.device_map,
-                                                  groupsize=ft_config.groupsize)
+                                                 ft_config.llama_q4_model,
+                                                 device_map=ft_config.device_map,
+                                                 groupsize=ft_config.groupsize
+                                                )
 
 # Config Lora
 lora_config = LoraConfig(
     r=ft_config.lora_r,
     lora_alpha=ft_config.lora_alpha,
-    target_modules=["q_proj", "v_proj"],
+    target_modules=ft_config.lora_target_modules,
     lora_dropout=ft_config.lora_dropout,
     bias="none",
-    task_type="CAUSAL_LM",
+    task_type=TaskType.CAUSAL_LM,
+    inference_mode=False
 )
 if ft_config.lora_apply_dir is None:
     model = get_peft_model(model, lora_config)
 else:
     if ft_config.ddp:
-        model = PeftModel.from_pretrained(model, ft_config.lora_apply_dir, device_map="auto", torch_dtype=torch.float32)  # ! Direct copy from inference.py
+        model = PeftModel.from_pretrained(model, ft_config.lora_apply_dir, is_trainable=True, device_map="auto", torch_dtype=torch.float32)
     else:
-        model = PeftModel.from_pretrained(model, ft_config.lora_apply_dir, device_map={'': 0}, torch_dtype=torch.float32)
+        model = PeftModel.from_pretrained(model, ft_config.lora_apply_dir, is_trainable=True, device_map={'': 0}, torch_dtype=torch.float32)
     print(ft_config.lora_apply_dir, 'loaded')
 
+# Print trainable parameters
+model.print_trainable_parameters()
 
-# Scales to half
-print('Fitting 4bit scales and zeros to half')
-for n, m in model.named_modules():
-    if '4bit' in str(type(m)):
-        if m.groupsize == -1:
-            m.zeros = m.zeros.half()
-        m.scales = m.scales.half()
 
 # Set tokenizer
 tokenizer.pad_token_id = 0
@@ -131,12 +124,6 @@ if not ft_config.skip:
         data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
     )
     model.config.use_cache = False
-
-    # Set Model dict
-    old_state_dict = model.state_dict
-    model.state_dict = (
-        lambda self, *_, **__: get_peft_model_state_dict(self, old_state_dict())
-    ).__get__(model, type(model))
 
     # Set Verbose
     if ft_config.verbose:
