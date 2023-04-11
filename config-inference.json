@@ -1,0 +1,7 @@
+{
+    "lora_apply_dir" : "lora-r4-7b",
+    "llama_q4_config_dir" : "/home/user/models/7b/config",
+    "llama_q4_model" : "/home/user/models/7b/model.safetensors",
+    "groupsize" : 128,
+    "offloading" : true
+}
