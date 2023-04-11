@@ -7,6 +7,9 @@ from autograd_4bit import (
     load_llama_model_4bit_low_ram
 )
 
+import config
+config.WORK_MODE = config.EWorkModes.INFERENCE
+
 from config.arg_parser import get_config
 
 # ! Suppress warnings from safetensors
@@ -23,29 +26,35 @@ config_path = config.llama_q4_config_dir
 model_path = config.llama_q4_model
 groupsize = config.groupsize
 
-# VRAM
-# model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=groupsize)
+# * Show loaded parameters
+print(f"{config}\n")
 
-# Offload
-model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
-    config_path=config_path,
-    model_path=model_path,
-    groupsize=groupsize,
-    max_memory={
-        0 : "10Gib",
-        "cpu" : "80Gib"
-    }
-)
-
-# Apply LoRA
-if config.lora_apply_dir is not None:
-    print(Fore.LIGHTMAGENTA_EX + "Applying LoRA", end=" ")
-    try:
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, config.lora_apply_dir, device_map="auto", torch_dtype=torch.float32)
-        print(Fore.GREEN + "ok")
-    except:
-        print(Fore.LIGHTRED_EX + "fail\n" + Fore.YELLOW + "Proceed with base model")
+# Load model
+if config.offloading:
+    print(Fore.YELLOW + "Using offloading")
+    # Offload
+    model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
+        config_path=config_path,
+        model_path=model_path,
+        lora_path=config.lora_apply_dir,
+        groupsize=groupsize,
+        max_memory={
+            0 : "10Gib",
+            "cpu" : "80Gib"
+        }
+    )
+else:
+    # VRAM
+    model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=groupsize)
+    # Apply LoRA
+    if config.lora_apply_dir is not None:
+        print(Fore.LIGHTMAGENTA_EX + "Applying LoRA...")
+        try:
+            from peft import PeftModel
+            model = PeftModel.from_pretrained(model, config.lora_apply_dir, torch_dtype=torch.float32).cuda()
+            print(Fore.GREEN + f"{config.lora_apply_dir} applied")
+        except:
+            print(Fore.LIGHTRED_EX + f"Failed to apply {config.lora_apply_dir}\n" + Fore.YELLOW + "Proceed with base model")
 
 
 print(Fore.LIGHTYELLOW_EX + 'Apply AMP Wrapper ...')
