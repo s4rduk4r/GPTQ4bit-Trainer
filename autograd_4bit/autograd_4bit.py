@@ -138,6 +138,11 @@ def load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1, half=Fa
             if name in layers:
                 del layers[name]
         make_quant_for_4bit_autograd(model, layers, groupsize=groupsize)
+    
+    device_map = accelerate.infer_auto_device_map(
+            model, 
+            no_split_module_classes=["LlamaDecoderLayer"]
+        ) if device_map == "auto" else device_map
     model = accelerate.load_checkpoint_and_dispatch(
         model=model,
         checkpoint=model_path,
