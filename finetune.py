@@ -27,6 +27,9 @@ import warnings
 warnings.filterwarnings(action="ignore", category=UserWarning, message="TypedStorage is deprecated")
 
 # ! Config
+import config
+config.WORK_MODE = config.EWorkModes.FINETUNE
+
 from config.arg_parser import get_config
 import train_data
 
