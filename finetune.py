@@ -22,6 +22,9 @@ import transformers
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel
 from autograd_4bit import load_llama_model_4bit_low_ram
 
+# ! Suppress warnings from safetensors
+import warnings
+warnings.filterwarnings(action="ignore", category=UserWarning, message="TypedStorage is deprecated")
 
 # ! Config
 from config.arg_parser import get_config
