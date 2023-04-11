@@ -23,55 +23,55 @@ def parse_commandline():
     )
 
     # Config args group
-    parser_config.add_argument("--ds_type", choices=["txt", "alpaca", "gpt4all"], default="alpaca", required=False,
+    parser_config.add_argument("--ds-type", choices=["txt", "alpaca", "gpt4all"], default="alpaca", required=False,
         help="Dataset structure format. Default: %(default)s"
     )
-    parser_config.add_argument("--lora_out_dir", default="alpaca_lora", required=False,
+    parser_config.add_argument("--lora-out-dir", default="alpaca_lora", required=False,
         help="Directory to place new LoRA. Default: %(default)s"
     )
-    parser_config.add_argument("--lora_apply_dir", default=None, required=False,
+    parser_config.add_argument("--lora-apply-dir", default=None, required=False,
         help="Path to directory from which LoRA has to be applied before training. Default: %(default)s"
     )
-    parser_training.add_argument("--resume_checkpoint", default=None, required=False,
+    parser_training.add_argument("--resume-checkpoint", default=None, required=False,
         help="Resume training from specified checkpoint. Default: %(default)s"
     )
-    parser_config.add_argument("--llama_q4_config_dir", default="./llama-13b-4bit/", required=False,
+    parser_config.add_argument("--llama-q4-config-dir", default="./llama-13b-4bit/", required=False,
         help="Path to the config.json, tokenizer_config.json, etc. Default: %(default)s"
     )
-    parser_config.add_argument("--llama_q4_model", default="./llama-13b-4bit.pt", required=False,
+    parser_config.add_argument("--llama-q4-model", default="./llama-13b-4bit.pt", required=False,
         help="Path to the quantized model in huggingface format. Default: %(default)s"
     )
 
     # Training args group
-    parser_training.add_argument("--mbatch_size", default=1, type=int, help="Micro-batch size. Default: %(default)s")
-    parser_training.add_argument("--batch_size", default=2, type=int, help="Batch size. Default: %(default)s")
+    parser_training.add_argument("--mbatch-size", default=1, type=int, help="Micro-batch size. Default: %(default)s")
+    parser_training.add_argument("--batch-size", default=2, type=int, help="Batch size. Default: %(default)s")
     parser_training.add_argument("--epochs", default=3, type=int, help="Epochs. Default: %(default)s")
     parser_training.add_argument("--lr", default=2e-4, type=float, help="Learning rate. Default: %(default)s")
-    parser_training.add_argument("--cutoff_len", default=256, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--lora_r", default=8, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--lora_alpha", default=16, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--lora_dropout", default=0.05, type=float, help="Default: %(default)s")
-    parser_training.add_argument("--lora_target_modules", default="q_proj, v_proj", type=str, help="Default: %(default)s")
-    parser_training.add_argument("--grad_chckpt", action="store_true", required=False, help="Use gradient checkpoint. For 30B model. Default: %(default)s")
-    parser_training.add_argument("--grad_chckpt_ratio", default=1, type=float, help="Gradient checkpoint ratio. Default: %(default)s")
-    parser_training.add_argument("--val_set_size", default=0.2, type=float, help="Validation set size. Default: %(default)s")
-    parser_training.add_argument("--warmup_steps", default=50, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--save_steps", default=50, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--save_total_limit", default=3, type=int, help="Default: %(default)s")
-    parser_training.add_argument("--logging_steps", default=10, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--cutoff-len", default=256, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--lora-r", default=8, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--lora-alpha", default=16, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--lora-dropout", default=0.05, type=float, help="Default: %(default)s")
+    parser_training.add_argument("--lora-target_modules", default="q_proj, v_proj", type=str, help="Default: %(default)s")
+    parser_training.add_argument("--grad-chckpt", action="store_true", required=False, help="Use gradient checkpoint. For 30B model. Default: %(default)s")
+    parser_training.add_argument("--grad-chckpt-ratio", default=1, type=float, help="Gradient checkpoint ratio. Default: %(default)s")
+    parser_training.add_argument("--val-set-size", default=0.2, type=float, help="Validation set size. Default: %(default)s")
+    parser_training.add_argument("--warmup-steps", default=50, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--save-steps", default=50, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--save-total-limit", default=3, type=int, help="Default: %(default)s")
+    parser_training.add_argument("--logging-steps", default=10, type=int, help="Default: %(default)s")
     parser_training.add_argument("-c", "--checkpoint", action="store_true", help="Produce checkpoint instead of LoRA. Default: %(default)s")
     parser_training.add_argument("--skip", action="store_true", help="Don't train model. Can be useful to produce checkpoint from existing LoRA. Default: %(default)s")
     parser_training.add_argument("--verbose", action="store_true", help="If output log of training. Default: %(default)s")
 
     # Data args
-    parser_training.add_argument("--txt_row_thd", default=-1, type=int, help="Custom thd for txt rows.")
-    parser_training.add_argument("--use_eos_token", action="store_false", help="Use eos token instead of padding with 0. Default: %(default)s")
+    parser_training.add_argument("--txt-row-thd", default=-1, type=int, help="Custom thd for txt rows.")
+    parser_training.add_argument("--use-eos-token", action="store_false", help="Use eos token instead of padding with 0. Default: %(default)s")
     
     # V2 model support
     parser_training.add_argument("--groupsize", type=int, default=-1, help="Groupsize of v2 model, use -1 to load v1 model")
 
     # Multi GPU Support
-    parser_training.add_argument("--local_rank", type=int, default=0, help="local rank if using torch.distributed.launch")
+    parser_training.add_argument("--local-rank", type=int, default=0, help="local rank if using torch.distributed.launch")
 
     return vars(parser.parse_args())
 
