@@ -1,43 +1,74 @@
-# Alpaca Lora 4bit
+# GPTQ4bit Trainer
+This is a heavily modified fork of [johnsmith0031/alpaca_lora_4bit](https://github.com/johnsmith0031/alpaca_lora_4bit) concentrating on Triton implementation of 4bit GPTQv2 model finetuning. 
 
-Made some adjust for the code in peft and gptq for llama, and make it possible for lora finetuning with a 4 bits base model. The same adjustment can be made for 2, 3 and 8 bits.
+**Note:** If you're interested in GPTQv1 models or CUDA support, please use [johnsmith0031/alpaca_lora_4bit](https://github.com/johnsmith0031/alpaca_lora_4bit)
 
-* Install Manual by s4rduk4r: https://github.com/s4rduk4r/alpaca_lora_4bit_readme/blob/main/README.md (**NOTE:** don't use the install script, use the requirements.txt instead.)
-* Also Remember to create a venv if you do not want the packages be overwritten.
+## Main differences:
+1. No CUDA support. And there are no plans to add it in the future
+2. No GPTQv1 support
+3. Minimal inference code. Just enough to test the models produced
+4. Adoption of the most recent upstream [peft](https://github.com/huggingface/peft) library
+5. Will focus on producing a standalone python package
 
-# Update Logs
-* Resolved numerically unstable issue
-* Reconstruct fp16 matrix from 4bit data and call torch.matmul largely increased the inference speed.
-* Added install script for windows and linux.
-* Added Gradient Checkpointing. Now It can finetune 30b model 4bit on a single GPU with 24G VRAM with Gradient Checkpointing enabled. (finetune.py updated) (but would reduce training speed, so if having enough VRAM this option is not needed)
-* Added install manual by s4rduk4r
-* Added pip install support by sterlind, preparing to merge changes upstream
-* Added V2 model support (with groupsize, both inference + finetune)
-* Added some options on finetune: set default to use eos_token instead of padding, add resume_checkpoint to continue training
-* Added offload support. load_llama_model_4bit_low_ram_and_offload_to_cpu function can be used.
 
 # Requirements
-peft<br>
-The specific version is inside requirements.txt<br>
+**OS:** Linux, Windows WSL
+
+**Libraries:**
+- `torch`
+- `accelerate`
+- `bitsandbytes`
+- `transformers`
+- `datasets`
+- `sentencepiece`
+- `safetensors`
+- `triton`
+- `peft` fork
 
 # Install
-**NOTE:** Install scripts are no longer needed! requirements.txt now pulls from forks with the necessary patches.
-
 ```
+git clone https://github.com/s4rduk4r/alpaca_lora_4bit
+cd alpaca_lora_4bit
 pip install -r requirements.txt
 ```
 
 # Finetune
-**GPTQv2 only**:
-
+List all arguments
+```sh
+python finetune.py -h
 ```
-python finetune.py
+
+Command-line arguments
+```sh
+python finetune.py [args_list]
+```
+
+Config file
+```sh
+python finetune.py --config-file /path/to/config.json
 ```
 
 # Inference
-
-After installation, this script can be used:
-
+List all arguments
+```sh
+python finetune.py -h
 ```
-python inference.py
+**Note:** only a subset of arguments is supported:
+- llama-q4-config_dir
+- llama-q4-model
+- groupsize
+- lora-apply-dir
+
+Command-line arguments
 ```
+python inference.py [args_list]
+```
+
+Config file
+```sh
+python finetune.py --config-file /path/to/config.json
+```
+
+# References:
+1. Original code by [johnsmith0031/alpaca_lora_4bit](https://github.com/johnsmith0031/alpaca_lora_4bit)
+2. Original triton kernels by [qwopqwop200/GPTQ-for-LLaMa](https://github.com/qwopqwop200/GPTQ-for-LLaMa/blob/triton/quant.py)
