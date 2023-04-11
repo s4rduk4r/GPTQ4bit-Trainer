@@ -2,7 +2,6 @@ from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 from torch.utils.checkpoint import checkpoint
 from torch.autograd import Variable
 import torch
-from torch import nn
 import numpy as np
 
 
