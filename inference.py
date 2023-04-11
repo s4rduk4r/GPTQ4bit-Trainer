@@ -1,9 +1,11 @@
 from colorama import init, Style, Fore, Back
 import time
 import torch
-from autograd_4bit import load_llama_model_4bit_low_ram_and_offload_to_cpu
-from autograd_4bit import load_llama_model_4bit_low_ram
-from autograd_4bit import Autograd4bitQuantLinear
+from autograd_4bit import (
+    Autograd4bitQuantLinear,
+    load_llama_model_4bit_low_ram_and_offload_to_cpu,
+    load_llama_model_4bit_low_ram
+)
 
 from config.arg_parser import get_config
 
@@ -35,12 +37,6 @@ model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
     }
 )
 
-print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + 'Fitting 4bit scales and zeros to half')
-model.half()
-for n, m in model.named_modules():
-    if isinstance(m, Autograd4bitQuantLinear):
-        m.scales = m.scales.half()
-        m.bias = m.bias.half()
 
 print(Fore.LIGHTYELLOW_EX + 'Apply AMP Wrapper ...')
 from amp_wrapper import AMPWrapper
