@@ -37,6 +37,16 @@ model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
     }
 )
 
+# Apply LoRA
+if config.lora_apply_dir is not None:
+    print(Fore.LIGHTMAGENTA_EX + "Applying LoRA", end=" ")
+    try:
+        from peft import PeftModel
+        model = PeftModel.from_pretrained(model, config.lora_apply_dir, device_map="auto", torch_dtype=torch.float32)
+        print(Fore.GREEN + "ok")
+    except:
+        print(Fore.LIGHTRED_EX + "fail\n" + Fore.YELLOW + "Proceed with base model")
+
 
 print(Fore.LIGHTYELLOW_EX + 'Apply AMP Wrapper ...')
 from amp_wrapper import AMPWrapper
