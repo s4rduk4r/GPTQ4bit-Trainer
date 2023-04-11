@@ -135,11 +135,6 @@ elif WORK_MODE == EWorkModes.INFERENCE:
             usage="%(prog)s [config]\n\nAll arguments are optional"
         )
 
-        parser.add_argument("dataset", nargs="?",
-            default="./dataset.json", 
-            help="Path to dataset file. Default: %(default)s"
-        )
-
         # Config file
         parser.add_argument("--config-file", default=None, required=False,
             help="Read config from file.json. File structure repeats the arguments name passed via command line. Default: %(default)s"
