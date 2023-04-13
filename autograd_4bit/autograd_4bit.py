@@ -91,26 +91,6 @@ def make_quant_for_4bit_autograd(module, names, name='', groupsize=-1):
         make_quant_for_4bit_autograd(child, names, name + '.' + name1 if name != '' else name1, groupsize=groupsize)
 
 
-def model_to_half(model):
-    model.half()
-    for n, m in model.named_modules():
-        if isinstance(m, Autograd4bitQuantLinear):
-            m.qzeros = m.qzeros.half()
-            m.scales = m.scales.half()
-            m.bias = m.bias.half()
-    print(Style.BRIGHT + Fore.YELLOW + 'Converted as Half.')
-
-
-def model_to_float(model):
-    model.float()
-    for n, m in model.named_modules():
-        if isinstance(m, Autograd4bitQuantLinear):
-            m.qzeros = m.qzeros.float()
-            m.scales = m.scales.float()
-            m.bias = m.bias.float()
-    print(Style.BRIGHT + Fore.YELLOW + 'Converted as Float.')
-
-
 def find_layers(module, layers=[nn.Conv2d, nn.Linear], name=''):
     if type(module) in layers:
         return {name: module}
@@ -122,7 +102,7 @@ def find_layers(module, layers=[nn.Conv2d, nn.Linear], name=''):
     return res
 
 
-def load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1, half=False, device_map="auto", seqlen=2048):
+def load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1, device_map="auto", seqlen=2048):
     import accelerate
     from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
 
@@ -151,9 +131,6 @@ def load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1, half=Fa
     )
 
     model.seqlen = seqlen
-
-    if half:
-        model_to_half(model)
 
     tokenizer = LlamaTokenizer.from_pretrained(config_path)
     tokenizer.truncation_side = 'left'
