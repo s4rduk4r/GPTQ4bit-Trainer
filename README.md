@@ -19,11 +19,11 @@ This is a heavily modified fork of [johnsmith0031/alpaca_lora_4bit](https://gith
 - `accelerate`
 - `bitsandbytes`
 - `transformers`
+- `peft`
 - `datasets`
 - `sentencepiece`
 - `safetensors`
 - `triton`
-- `peft` fork
 
 # Install
 ```
@@ -58,6 +58,7 @@ python finetune.py -h
 - llama-q4-model
 - groupsize
 - lora-apply-dir
+- offloading
 
 Command-line arguments
 ```
