@@ -3,8 +3,6 @@ import argparse
 
 from . import WORK_MODE, EWorkModes
 
-# global WORK_MODE
-
 
 if WORK_MODE == EWorkModes.FINETUNE:
 
