@@ -7,6 +7,9 @@ from peft.tuners.lora import LoraLayer, LoraModel
 from peft.utils import _get_submodules
 from .autograd_4bit import Autograd4bitQuantLinear
 
+from peft import __version__ as peft_version
+assert peft_version >= "0.3.0.dev0"
+
 
 class Linear4bitLt(Autograd4bitQuantLinear, LoraLayer):
     # Lora implemented in a dense layer
