@@ -19,6 +19,7 @@ class Finetune4bConfig:
                  checkpoint: bool, skip: bool, verbose: bool,
                  txt_row_thd: int, use_eos_token: bool, groupsize: int,
                  local_rank: int,
+                 config_file_path: str
                  ):
         """
         Args:
@@ -52,6 +53,7 @@ class Finetune4bConfig:
             use_eos_token (bool): Use Eos token instead of padding with 0
             groupsize (int): Group size of V2 model, use -1 to load V1 model
             local_rank (int): local rank if using torch.distributed.launch
+            config_file_path (str): path to config file used
         """
         self.dataset = dataset
         self.ds_type = ds_type
@@ -89,6 +91,7 @@ class Finetune4bConfig:
         if self.ddp:
             self.gradient_accumulation_steps = self.gradient_accumulation_steps // self.world_size
         self.groupsize = groupsize
+        self.config_file_path = config_file_path
 
 
     def __str__(self) -> str:
@@ -101,5 +104,6 @@ class Finetune4bConfig:
         f"{self.logging_steps=}\n" +\
         f"{self.checkpoint=}\n{self.skip=}\n" +\
         f"{self.world_size=}\n{self.ddp=}\n{self.device_map=}\n" +\
-        f"{self.groupsize=}\n"
+        f"{self.groupsize=}\n" +\
+        f"{self.config_file_path=}\n"
         return s.replace("self.", "")

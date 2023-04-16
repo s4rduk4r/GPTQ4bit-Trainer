@@ -41,7 +41,8 @@ if WORK_MODE == EWorkModes.FINETUNE:
                 txt_row_thd=config["txt_row_thd"],
                 use_eos_token=config["use_eos_token"],
                 groupsize=config["groupsize"],
-                local_rank=config["local_rank"]
+                local_rank=config["local_rank"],
+                config_file_path=path
             )
 
 elif WORK_MODE == EWorkModes.INFERENCE:
@@ -56,5 +57,6 @@ elif WORK_MODE == EWorkModes.INFERENCE:
                 llama_q4_model=config["llama_q4_model"],
                 lora_apply_dir=config["lora_apply_dir"],
                 groupsize=config["groupsize"],
-                offloading=config["offloading"]
+                offloading=config["offloading"],
+                config_file_path=path
             )

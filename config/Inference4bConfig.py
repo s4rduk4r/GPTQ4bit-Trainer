@@ -4,11 +4,12 @@ from typing import List
 class Inference4bConfig:
     """Config holder for LLaMA 4bit inference
     """
-    def __init__(self, 
+    def __init__(self,
                  llama_q4_config_dir: str, llama_q4_model: str,
                  lora_apply_dir: str,
                  groupsize: int,
-                 offloading: bool
+                 offloading: bool,
+                 config_file_path: str
                  ):
         """
         Args:
@@ -17,17 +18,20 @@ class Inference4bConfig:
             lora_apply_dir (str): Path to directory from which LoRA has to be applied before training
             groupsize (int): Group size of GPTQv2 model
             offloading (bool): Use offloading
+            config_file_path (str): path to config file used
         """
         self.llama_q4_config_dir = llama_q4_config_dir
         self.llama_q4_model = llama_q4_model
         self.lora_apply_dir = lora_apply_dir
         self.groupsize = groupsize
         self.offloading = offloading
+        self.config_file_path = config_file_path
 
 
     def __str__(self) -> str:
         s = f"\nParameters:\n{'Inference':-^20}\n" +\
         f"{self.llama_q4_config_dir=}\n{self.llama_q4_model=}\n{self.lora_apply_dir=}\n" +\
         f"{self.groupsize=}\n" +\
-        f"{self.offloading=}"
+        f"{self.offloading=}\n" +\
+        f"{self.config_file_path=}\n"
         return s.replace("self.", "")
