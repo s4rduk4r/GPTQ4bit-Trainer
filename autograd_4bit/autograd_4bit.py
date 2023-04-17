@@ -169,7 +169,6 @@ def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lo
 
     if lora_path is not None:
         from peft import PeftModel
-        from peft.tuners.lora import Linear4bitLt
         model = PeftModel.from_pretrained(model, lora_path, device_map={'': 'cpu'}, torch_dtype=torch.float32)
         print(Style.BRIGHT + Fore.GREEN + '{} Lora Applied.'.format(lora_path))
 
