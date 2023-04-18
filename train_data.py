@@ -174,6 +174,7 @@ class TrainSAD(ATrainData):
             self.val_data = None
 
     # Auxiliary methods
+    @classmethod
     def generate_prompt(self, data_point, **kwargs):
         return "{0}\n\n{1}\n{2}\n\n{3}\n{4}\n\n{5}\n{6}".format(
             "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.",
