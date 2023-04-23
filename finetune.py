@@ -20,7 +20,7 @@
 import torch
 import transformers
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel
-from autograd_4bit import load_llama_model_4bit_low_ram
+from autograd_4bit import load_llm, LLMGPTQv2LoaderArguments, EModelType
 
 # ! Suppress warnings from safetensors
 import warnings
@@ -43,11 +43,16 @@ if ft_config.gradient_checkpointing:
     print('Disable Dropout.')
 
 # Load Basic Model
-model, tokenizer = load_llama_model_4bit_low_ram(ft_config.llama_q4_config_dir,
-                                                 ft_config.llama_q4_model,
-                                                 device_map=ft_config.device_map,
-                                                 groupsize=ft_config.groupsize
-                                                )
+model_args = LLMGPTQv2LoaderArguments(
+    EModelType.LLaMA,
+    ft_config.llama_q4_config_dir,
+    ft_config.llama_q4_model,
+    ft_config.groupsize,
+    2048,
+    ft_config.device_map,
+    None
+)
+model, tokenizer = load_llm(model_args)
 
 # Config Lora
 lora_config = LoraConfig(
