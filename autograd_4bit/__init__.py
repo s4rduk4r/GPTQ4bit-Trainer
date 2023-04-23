@@ -6,8 +6,7 @@ init(autoreset=True)
 
 # Module interface
 from .autograd_4bit import Autograd4bitQuantLinear
-from .autograd_4bit import load_llama_model_4bit_low_ram
-from .autograd_4bit import load_llama_model_4bit_low_ram_and_offload_to_cpu
+from .llm_loaders import EModelType, LLMGPTQv2LoaderArguments, load_llm
 
 # Patch
 from . import lora_patch

@@ -4,11 +4,8 @@ References:
 1. Original AutogradMatmul4bit implementation - https://github.com/johnsmith0031/alpaca_lora_4bit/blob/main/autograd_4bit.py
 2. Forward and backward kernels - https://github.com/qwopqwop200/GPTQ-for-LLaMa/blob/triton/quant.py
 """
-
-from colorama import Fore, Style
 import torch
 import torch.nn as nn
-import time
 import math
 import triton
 from autograd_4bit.triton_kernels import matmul_248_kernel, trans_matmul_248_kernel
@@ -26,7 +23,7 @@ class AutogradMatmul4bit(torch.autograd.Function):
                                 qweight.stride(0), qweight.stride(1),
                                 output.stride(0), output.stride(1),
                                 scales.stride(0), qzeros.stride(0))
-        
+
         ctx.save_for_backward(qweight, scales, qzeros, g_idx)
         ctx.input_shape, ctx.bits,ctx.maxq = input.shape,bits, maxq
         return output
@@ -89,115 +86,3 @@ def make_quant_for_4bit_autograd(module, names, name='', groupsize=-1):
             )
     for name1, child in module.named_children():
         make_quant_for_4bit_autograd(child, names, name + '.' + name1 if name != '' else name1, groupsize=groupsize)
-
-
-def find_layers(module, layers=[nn.Conv2d, nn.Linear], name=''):
-    if type(module) in layers:
-        return {name: module}
-    res = {}
-    for name1, child in module.named_children():
-        res.update(find_layers(
-            child, layers=layers, name=name + '.' + name1 if name != '' else name1
-        ))
-    return res
-
-
-def load_llama_model_4bit_low_ram(config_path, model_path, groupsize=-1, device_map="auto", seqlen=2048):
-    import accelerate
-    from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
-
-    print(Style.BRIGHT + Fore.CYAN + "Loading Model ...")
-    t0 = time.time()
-
-    with accelerate.init_empty_weights():
-        config = LlamaConfig.from_pretrained(config_path)
-        model = LlamaForCausalLM(config)
-        model = model.eval()
-        layers = find_layers(model)
-        for name in ['lm_head']:
-            if name in layers:
-                del layers[name]
-        make_quant_for_4bit_autograd(model, layers, groupsize=groupsize)
-    
-    device_map = accelerate.infer_auto_device_map(
-            model, 
-            no_split_module_classes=["LlamaDecoderLayer"]
-        ) if device_map == "auto" else device_map
-    model = accelerate.load_checkpoint_and_dispatch(
-        model=model,
-        checkpoint=model_path,
-        device_map=device_map,
-        no_split_module_classes=["LlamaDecoderLayer"]
-    )
-
-    model.seqlen = seqlen
-
-    tokenizer = LlamaTokenizer.from_pretrained(config_path)
-    tokenizer.truncation_side = 'left'
-
-    print(Style.BRIGHT + Fore.GREEN + f"Loaded the model in {(time.time()-t0):.2f} seconds.")
-
-    return model, tokenizer
-
-def load_llama_model_4bit_low_ram_and_offload_to_cpu(config_path, model_path, lora_path=None, groupsize=-1, seqlen=2048, max_memory=None):
-    import accelerate
-    from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
-
-    if max_memory is None:
-        max_memory = {0: '24Gib', 'cpu': '48Gib'}
-
-    print(Style.BRIGHT + Fore.CYAN + "Loading Model ...")
-    t0 = time.time()
-
-    with accelerate.init_empty_weights():
-        config = LlamaConfig.from_pretrained(config_path)
-        model = LlamaForCausalLM(config)
-        model = model.eval()
-        layers = find_layers(model)
-        for name in ['lm_head']:
-            if name in layers:
-                del layers[name]
-        make_quant_for_4bit_autograd(model, layers, groupsize=groupsize)
-    accelerate.load_checkpoint_in_model(model, checkpoint=model_path, device_map={'': 'cpu'})
-
-    # # rotary_emb fix
-    for n, m in model.named_modules():
-        if 'rotary_emb' in n:
-            cos_cached = m.cos_cached.clone().cpu()
-            sin_cached = m.sin_cached.clone().cpu()
-            break
-
-    if lora_path is not None:
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, lora_path, device_map={'': 'cpu'}, torch_dtype=torch.float32)
-        print(Style.BRIGHT + Fore.GREEN + '{} Lora Applied.'.format(lora_path))
-
-    model.seqlen = seqlen
-
-
-    print(Style.BRIGHT + Fore.BLUE + 'Dispatching model ...')
-    device_map = accelerate.infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes=["LlamaDecoderLayer"])
-    model = accelerate.dispatch_model(model, device_map=device_map, offload_buffers=True, main_device=0)
-    torch.cuda.empty_cache()
-    print(Style.BRIGHT + Fore.YELLOW + 'Total {:.2f} Mib VRAM used.'.format(torch.cuda.memory_allocated() / (1024 ** 2)))
-
-    # rotary_emb fix
-    for n, m in model.named_modules():
-        if 'rotary_emb' in n:
-            if getattr(m, '_hf_hook', None):
-                if isinstance(m._hf_hook, accelerate.hooks.SequentialHook):
-                    hooks = m._hf_hook.hooks
-                else:
-                    hooks = [m._hf_hook]
-                for hook in hooks:
-                    if hook.offload:
-                        if n + '.sin_cached' not in hook.weights_map.dataset.state_dict.keys():
-                            hook.weights_map.dataset.state_dict[n + '.sin_cached'] = sin_cached.clone().cpu()
-                            hook.weights_map.dataset.state_dict[n + '.cos_cached'] = cos_cached.clone().cpu()
-
-    tokenizer = LlamaTokenizer.from_pretrained(config_path)
-    tokenizer.truncation_side = 'left'
-
-    print(Style.BRIGHT + Fore.GREEN + f"Loaded the model in {(time.time()-t0):.2f} seconds.")
-
-    return model, tokenizer
