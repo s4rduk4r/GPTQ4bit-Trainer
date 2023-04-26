@@ -9,7 +9,9 @@ class Inference4bConfig:
                  lora_apply_dir: str,
                  groupsize: int,
                  offloading: bool,
-                 config_file_path: str
+                 config_file_path: str,
+                 device_map : str,
+                 max_memory : dict
                  ):
         """
         Args:
@@ -26,6 +28,16 @@ class Inference4bConfig:
         self.groupsize = groupsize
         self.offloading = offloading
         self.config_file_path = config_file_path
+        self.device_map = device_map if device_map is not None else "auto"
+        self.max_memory = None
+        if max_memory is not None:
+            delattr(self, "max_memory")
+            setattr(self, "max_memory", dict())
+            for k, v in max_memory.items():
+                try:
+                    self.max_memory[int(k)] = v
+                except:
+                    self.max_memory[k] = v
 
 
     def __str__(self) -> str:

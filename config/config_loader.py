@@ -58,5 +58,7 @@ elif WORK_MODE == EWorkModes.INFERENCE:
                 lora_apply_dir=config["lora_apply_dir"],
                 groupsize=config["groupsize"],
                 offloading=config["offloading"],
-                config_file_path=path
+                config_file_path=path,
+                device_map=config["device_map"],
+                max_memory=config["max_memory"]
             )
