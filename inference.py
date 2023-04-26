@@ -2,9 +2,7 @@ from colorama import init, Style, Fore, Back
 import time
 import torch
 from autograd_4bit import (
-    Autograd4bitQuantLinear,
-    load_llama_model_4bit_low_ram_and_offload_to_cpu,
-    load_llama_model_4bit_low_ram
+    load_llm, LLMGPTQv2LoaderArguments, EModelType
 )
 
 import config
@@ -29,32 +27,18 @@ groupsize = config.groupsize
 # * Show loaded parameters
 print(f"{config}\n")
 
-# Load model
-if config.offloading:
-    print(Fore.YELLOW + "Using offloading")
-    # Offload
-    model, tokenizer = load_llama_model_4bit_low_ram_and_offload_to_cpu(
-        config_path=config_path,
-        model_path=model_path,
-        lora_path=config.lora_apply_dir,
-        groupsize=groupsize,
-        max_memory={
-            0 : "10Gib",
-            "cpu" : "80Gib"
-        }
-    )
-else:
-    # VRAM
-    model, tokenizer = load_llama_model_4bit_low_ram(config_path, model_path, groupsize=groupsize)
-    # Apply LoRA
-    if config.lora_apply_dir is not None:
-        print(Fore.LIGHTMAGENTA_EX + "Applying LoRA...")
-        try:
-            from peft import PeftModel
-            model = PeftModel.from_pretrained(model, config.lora_apply_dir, torch_dtype=torch.float32).cuda()
-            print(Fore.GREEN + f"{config.lora_apply_dir} applied")
-        except:
-            print(Fore.LIGHTRED_EX + f"Failed to apply {config.lora_apply_dir}\n" + Fore.YELLOW + "Proceed with base model")
+# Load Basic Model
+model_args = LLMGPTQv2LoaderArguments(
+    EModelType.LLaMA,
+    config.llama_q4_config_dir,
+    config.llama_q4_model,
+    config.groupsize,
+    2048,
+    config.device_map,
+    config.max_memory if config.offloading else None,
+    config.lora_apply_dir
+)
+model, tokenizer = load_llm(model_args)
 
 
 print(Fore.LIGHTYELLOW_EX + 'Apply AMP Wrapper ...')
