@@ -1,9 +1,11 @@
 {
-    "lora_apply_dir" : "lora-r4-7b",
-    "llama_q4_config_dir" : "/home/user/models/7b/config",
-    "llama_q4_model" : "/home/user/models/7b/model.safetensors",
+    "lora_apply_dir" : null,
+    "llama_q4_config_dir" : "/home/user/models/Llama-2-7b-chat-GPTQ/",
+    "llama_q4_model" : "/home/user/models/Llama-2-7b-chat-GPTQ/llama-7b-chat-gptq_model-4bit-128g.safetensors",
+    "chat_mode" : true,
     "groupsize" : 128,
-    "offloading" : false,
+    "offloading" : true,
+    "offload_folder" : "/home/user/offload",
     "device_map" : null,
     "max_memory" : {
         "0" : "10Gib",
