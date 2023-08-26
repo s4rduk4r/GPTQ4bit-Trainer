@@ -56,8 +56,10 @@ elif WORK_MODE == EWorkModes.INFERENCE:
                 llama_q4_config_dir=config["llama_q4_config_dir"],
                 llama_q4_model=config["llama_q4_model"],
                 lora_apply_dir=config["lora_apply_dir"],
+                chat_mode=config["chat_mode"],
                 groupsize=config["groupsize"],
                 offloading=config["offloading"],
+                offload_folder=config["offload_folder"],
                 config_file_path=path,
                 device_map=config["device_map"],
                 max_memory=config["max_memory"]

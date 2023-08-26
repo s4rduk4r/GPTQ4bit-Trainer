@@ -163,5 +163,6 @@ elif WORK_MODE == EWorkModes.INFERENCE:
             llama_q4_model=args["llama_q4_model"],
             lora_apply_dir=args["lora_apply_dir"],
             groupsize=args["groupsize"],
-            offloading=args["offloading"]
+            offloading=args["offloading"],
+            offload_folder=args["offload_folder"]
         )

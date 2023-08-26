@@ -25,6 +25,7 @@ class LLMGPTQv2LoaderArguments:
                  seqlen: int,
                  device_map: Dict[str, int | str] = None,
                  max_memory: Dict[str, int | str] = None,
+                 offload_folder: str = None,
                  lora_path: str = None
                  ) -> None:
         self.model = model
@@ -34,25 +35,27 @@ class LLMGPTQv2LoaderArguments:
         self.seqlen = seqlen
         self.device_map = device_map
         self.max_memory = max_memory
+        self.offload_folder = offload_folder
         self.lora_path = lora_path
 
 
 def load_llm(args: LLMGPTQv2LoaderArguments):
     match args.model:
         case EModelType.LLaMA:
-            if args.max_memory is None:
+            # if args.max_memory is None:
                 model, token = LLaMALoader.load_model_4bit_low_ram(
                     config_path=args.config_path, model_path=args.model_path,
                     groupsize=args.groupsize, seqlen=args.seqlen,
-                    device_map=args.device_map
+                    device_map=args.device_map, max_memory=args.max_memory,
+                    offload_folder=args.offload_folder
                 )
-            else:
-                model, token = LLaMALoader.load_model_4bit_low_ram_and_offload_to_cpu(
-                    config_path=args.config_path, model_path=args.model_path,
-                    lora_path=args.lora_path,
-                    groupsize=args.groupsize, seqlen=args.seqlen,
-                    max_memory=args.max_memory
-                )
+            # else:
+            #     model, token = LLaMALoader.load_model_4bit_low_ram_and_offload_to_cpu(
+            #         config_path=args.config_path, model_path=args.model_path,
+            #         lora_path=args.lora_path,
+            #         groupsize=args.groupsize, seqlen=args.seqlen,
+            #         max_memory=args.max_memory
+            #     )
         case EModelType.GPT_J:
             raise NotImplemented(f"{args.model} loader not implemented yet")
         case EModelType.GPT_NeoX:
@@ -79,7 +82,7 @@ class LLaMALoader:
         return res
 
     @classmethod
-    def load_model_4bit_low_ram(self, config_path, model_path, groupsize=-1, device_map="auto", seqlen=2048):
+    def load_model_4bit_low_ram(self, config_path, model_path, groupsize=-1, device_map="auto", max_memory=None, offload_folder=None, seqlen=2048):
 
         print(Style.BRIGHT + Fore.CYAN + "Loading Model ...")
         t0 = time.time()
@@ -96,12 +99,14 @@ class LLaMALoader:
 
         device_map = accelerate.infer_auto_device_map(
                 model,
+                max_memory=max_memory,
                 no_split_module_classes=["LlamaDecoderLayer"]
             ) if device_map == "auto" else device_map
         model = accelerate.load_checkpoint_and_dispatch(
             model=model,
             checkpoint=model_path,
             device_map=device_map,
+            offload_folder=offload_folder,
             no_split_module_classes=["LlamaDecoderLayer"]
         )
 
