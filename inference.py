@@ -125,6 +125,15 @@ class LLMChat:
                     continue
                 case "[END]":
                     return user_text
+                case "[BEGIN_RAW]":
+                    print(Fore.LIGHTYELLOW_EX + "RAW CHAT HISTORY INPUT: ON")
+                    user_text = ""
+                    is_multiline = True
+                    continue
+                case "[END_RAW]":
+                    print(Fore.LIGHTYELLOW_EX + "RAW CHAT HISTORY INPUT: OFF")
+                    self.chat_history = user_text
+                    continue
                 case _:
                     if is_multiline:
                         user_text += input_line + "\n"
