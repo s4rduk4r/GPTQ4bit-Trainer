@@ -133,6 +133,7 @@ class LLMChat:
                 case "[END_RAW]":
                     print(Fore.LIGHTYELLOW_EX + "RAW CHAT HISTORY INPUT: OFF")
                     self.chat_history = user_text
+                    is_multiline = False
                     continue
                 case _:
                     if is_multiline:
